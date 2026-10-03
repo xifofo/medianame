@@ -1,0 +1,23 @@
+# 分类按顺序匹配；空条件作为兜底分类。
+movie:
+  动画电影:
+    genre_ids: '16'
+  华语电影:
+    original_language: 'zh,cn,bo,za'
+  欧美电影:
+    original_language: 'en,de,fr,nl,ru,es,el,da'
+  日韩电影:
+    original_language: 'ja,ko'
+  外语电影:
+tv:
+  动画番剧:
+    genre_ids: '16'
+  综艺节目:
+    genre_ids: '10764,10767'
+  国产剧集:
+    origin_country: 'CN,TW,HK'
+  欧美剧集:
+    origin_country: 'US,FR,GB,DE,ES,IT,NL,PT,RU,UK'
+  日韩剧集:
+    origin_country: 'JP,KP,KR,TH,IN,SG'
+  其他剧集:

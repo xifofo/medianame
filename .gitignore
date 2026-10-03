@@ -1,0 +1,14 @@
+/medianame
+/medianame-shadow
+/medianame-enhance
+/reports/
+/coverage.out
+/coverage.html
+/dist/
+/go.work
+/go.work.sum
+.env
+.env.*
+!.env.example
+*.test
+.DS_Store

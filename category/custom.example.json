@@ -1,0 +1,21 @@
+{
+  "movie": [
+    {"name": "成人动画", "conditions": {"adult": true, "genre_ids": [16]}},
+    {"name": "成人电影", "conditions": {"adult": true}},
+    {"name": "动画电影", "conditions": {"genre_ids": [16]}},
+    {"name": "华语电影", "conditions": {"original_language": ["zh", "cn", "bo", "za"]}},
+    {"name": "欧美电影", "conditions": {"original_language": ["en", "de", "fr", "nl", "ru", "es", "el", "da"]}},
+    {"name": "日韩电影", "conditions": {"original_language": ["ja", "ko"]}},
+    {"name": "外语电影"}
+  ],
+  "tv": [
+    {"name": "成人动画", "conditions": {"adult": true, "genre_ids": [16]}},
+    {"name": "成人剧集", "conditions": {"adult": true}},
+    {"name": "动画番剧", "conditions": {"genre_ids": [16]}},
+    {"name": "综艺节目", "conditions": {"genre_ids": [10764, 10767]}},
+    {"name": "国产剧集", "conditions": {"origin_country": ["CN", "TW", "HK"]}},
+    {"name": "欧美剧集", "conditions": {"origin_country": ["US", "FR", "GB", "DE", "ES", "IT", "NL", "PT", "RU", "UK"]}},
+    {"name": "日韩剧集", "conditions": {"origin_country": ["JP", "KP", "KR", "TH", "IN", "SG"]}},
+    {"name": "其他剧集"}
+  ]
+}
