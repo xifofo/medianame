@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"medianame"
-	"medianame/category"
-	"medianame/rename"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/category"
+	"github.com/xifofo/medianame/rename"
 )
 
 // Classify 使用完整 TMDB 原始详情及归一化字段计算二级分类，不发起网络请求。

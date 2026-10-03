@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"medianame"
-	"medianame/tmdb"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/tmdb"
 )
 
 func TestUltimateGiftUsesTMDBYearForRecognitionAndNaming(t *testing.T) {

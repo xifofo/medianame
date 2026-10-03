@@ -11,7 +11,7 @@ import (
 	"text/template"
 	"unicode"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 // DefaultMovieTemplate 和 DefaultTVTemplate 将用户提供的 MP2 模板等价转换为 Go 语法。

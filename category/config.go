@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 // Config 用数组保存各类型的分类规则，数组顺序即匹配优先级。

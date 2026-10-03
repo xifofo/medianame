@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/xifofo/medianame"
 	"gopkg.in/yaml.v3"
-	"medianame"
 )
 
 // DefaultYAML 为用户提供的电影、电视剧分类策略。

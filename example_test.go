@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 func ExampleParse() {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 func ptr(n int) *int { return &n }

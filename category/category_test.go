@@ -5,8 +5,8 @@ import (
 	"sync"
 	"testing"
 
-	"medianame"
-	"medianame/category"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/category"
 )
 
 func TestDefaultPolicyUsesTMDBDetailsAndPriority(t *testing.T) {

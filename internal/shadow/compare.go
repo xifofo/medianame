@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 // Difference 保存统一格式之后仍然存在的字段差异。

@@ -1,6 +1,6 @@
 # 重命名使用说明
 
-`medianame/rename` 根据变量和 Go 模板生成命名预览，返回相对路径、目录和文件名。实际创建目录、移动文件和修改文件名由调用项目执行。
+`github.com/xifofo/medianame/rename` 根据变量和 Go 模板生成命名预览，返回相对路径、目录和文件名。实际创建目录、移动文件和修改文件名由调用项目执行。
 
 - [全部 38 个重命名变量](../README.md#重命名变量)
 - [分类配置与分类目录](category.md)
@@ -31,8 +31,8 @@ package main
 import (
     "fmt"
 
-    "medianame"
-    "medianame/rename"
+    "github.com/xifofo/medianame"
+    "github.com/xifofo/medianame/rename"
 )
 
 func main() {

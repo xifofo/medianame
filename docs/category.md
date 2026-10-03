@@ -122,8 +122,8 @@ import (
     "fmt"
     "os"
 
-    "medianame/category"
-    "medianame/tmdb"
+    "github.com/xifofo/medianame/category"
+    "github.com/xifofo/medianame/tmdb"
 )
 
 func main() {

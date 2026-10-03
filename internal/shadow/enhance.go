@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 type EnhancementAttempt struct {

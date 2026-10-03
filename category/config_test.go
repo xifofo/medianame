@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"medianame"
-	"medianame/category"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/category"
 )
 
 func TestStructuredAndJSONConfigMatchOrderedRules(t *testing.T) {

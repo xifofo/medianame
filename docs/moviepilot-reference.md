@@ -33,6 +33,6 @@
 
 ## 后续可扩展范围
 
-自定义重命名和二级分类现已分别提供 `medianame/rename`、`medianame/category`。模板采用用户选择的 Go 原生语法，不能直接执行 MP2 Jinja 模板；字段使用本包的归一化资源信息。YAML 一级键兼容 `movie/tv` 与 `电影/电视剧`，分类使用直接从 TMDB 获取的完整详情，不依赖 MP2 服务。使用说明与差异见 [README](../README.md)。参考：[MP2 进阶文档](https://wiki.movie-pilot.org/zh/advanced)、[Go 模板文档](https://pkg.go.dev/text/template)。
+自定义重命名和二级分类现已分别提供 `github.com/xifofo/medianame/rename`、`github.com/xifofo/medianame/category`。模板采用用户选择的 Go 原生语法，不能直接执行 MP2 Jinja 模板；字段使用本包的归一化资源信息。YAML 一级键兼容 `movie/tv` 与 `电影/电视剧`，分类使用直接从 TMDB 获取的完整详情，不依赖 MP2 服务。使用说明与差异见 [README](../README.md)。参考：[MP2 进阶文档](https://wiki.movie-pilot.org/zh/advanced)、[Go 模板文档](https://pkg.go.dev/text/template)。
 
 自定义识别词的替换、定位、集偏移表达式，发布组和平台配置，字幕语言细分，副标题中的“全 X 集”与复杂宣传描述，中英文候选名称分离，以及更完整的 MoviePilot 行为对照，都尚未实现。它们可以作为后续功能加入，当前 API 不对这些行为作出保证。

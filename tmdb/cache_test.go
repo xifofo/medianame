@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"medianame"
-	"medianame/tmdb"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/tmdb"
 )
 
 const cachedTVDetails = `{"id":123,"name":"Example Show","original_name":"Example Show","first_air_date":"2024-01-01",

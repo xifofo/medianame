@@ -12,8 +12,14 @@
 
 ## 使用
 
+在使用本包的 Go 项目中安装：
+
+```bash
+go get github.com/xifofo/medianame@latest
+```
+
 ```go
-import "medianame"
+import "github.com/xifofo/medianame"
 
 info := medianame.Parse("Breaking.Bad.S01E02.1080p.WEB-DL.H264.mkv")
 // info.Title      == "Breaking Bad"
@@ -39,7 +45,7 @@ info := medianame.ParsePath(
 
 季集字段使用 `*int`：剧集缺少季号时 `Season` 默认为 `1`；明确标注的第 0 季或第 0 集仍返回 `0`。`ParsePath` 会先合并文件名与目录中的季号，再补默认值，文件名中的明确季号优先。电影及未知类型不补季号；其余缺失字段为 `nil`，JSON 中会省略。
 
-当前 module 为本地名称 `medianame`。其他项目在发布前可以使用 `go.mod` 的 `replace` 指向本目录；确定仓库地址后，再将 module 和示例 import 改为实际仓库路径。
+模块路径为 `github.com/xifofo/medianame`，包名仍为 `medianame`。在线识别、重命名和分类分别导入该路径下的 `tmdb`、`rename`、`category` 子包。
 
 ## 支持的信息
 
@@ -121,7 +127,7 @@ disc := medianame.ParsePath("/movies/哈利叔叔的不寻常的韵事 (1945)/BD
 // disc.SearchQueries()[0].Text == "哈利叔叔的不寻常的韵事.1945 {[type=movie]}"
 ```
 
-`SearchQueries()` 返回纯本地查询条件：名称、年份、类型、显式数据库 ID，以及可提交给 MP2 等服务的清理后文本。双语名称及同年份发行别名分别生成查询，例如 `纵情女郎 (2006) - [工厂女孩].Factory.Girl.2006...` 可产生 `纵情女郎.2006 {[type=movie]}`、`工厂女孩.2006 {[type=movie]}`、`Factory Girl.2006 {[type=movie]}`。不同年份的发行名称不会被合并为别名。根包不访问媒体数据库；可选的 `medianame/tmdb` 子包提供在线识别。调用方取得在线候选后，可用 `CheckCandidate()` 检查身份：
+`SearchQueries()` 返回纯本地查询条件：名称、年份、类型、显式数据库 ID，以及可提交给 MP2 等服务的清理后文本。双语名称及同年份发行别名分别生成查询，例如 `纵情女郎 (2006) - [工厂女孩].Factory.Girl.2006...` 可产生 `纵情女郎.2006 {[type=movie]}`、`工厂女孩.2006 {[type=movie]}`、`Factory Girl.2006 {[type=movie]}`。不同年份的发行名称不会被合并为别名。根包不访问媒体数据库；可选的 `github.com/xifofo/medianame/tmdb` 子包提供在线识别。调用方取得在线候选后，可用 `CheckCandidate()` 检查身份：
 
 ```go
 conflicts := medianame.Parse("[咒怨(美版) 2004][原盘].mkv").CheckCandidate(
@@ -134,14 +140,14 @@ conflicts := medianame.Parse("[咒怨(美版) 2004][原盘].mkv").CheckCandidate
 
 ## TMDB 在线识别与影视详情
 
-`medianame/tmdb` 直接访问 TMDB，不依赖 MP2。它先用本包解析名称或路径，再搜索影视候选、取得完整详情并检查身份。`Parse`、`ParsePath` 的离线行为保持不变，无凭证时也可使用。
+`github.com/xifofo/medianame/tmdb` 直接访问 TMDB，不依赖 MP2。它先用本包解析名称或路径，再搜索影视候选、取得完整详情并检查身份。`Parse`、`ParsePath` 的离线行为保持不变，无凭证时也可使用。
 
 ```go
 import (
     "context"
     "os"
 
-    "medianame/tmdb"
+    "github.com/xifofo/medianame/tmdb"
 )
 
 client, err := tmdb.NewClient(tmdb.Config{
@@ -276,7 +282,7 @@ client.ClearCache() // 下一次查询重新请求 TMDB。
 
 ## 自定义重命名
 
-`medianame/rename` 使用 Go 自带的 [`text/template`](https://pkg.go.dev/text/template)。电影、剧集默认模板由提供的 MP2 格式等价转换，保留目录、季集补零、空技术字段省略和文件后缀。
+`github.com/xifofo/medianame/rename` 使用 Go 自带的 [`text/template`](https://pkg.go.dev/text/template)。电影、剧集默认模板由提供的 MP2 格式等价转换，保留目录、季集补零、空技术字段省略和文件后缀。
 
 完整操作步骤与可运行示例见 [重命名使用文档](docs/renaming.md)。模板变量大小写敏感，使用 `{{.变量名}}`；例如分辨率为 `{{.videoFormat}}`，扩展名为 `{{.fileExt}}`。
 
@@ -299,7 +305,7 @@ named, err = media.Rename(info,
 也可直接传变量表，或编译一次后批量复用：
 
 ```go
-import "medianame/rename"
+import "github.com/xifofo/medianame/rename"
 
 template, err := rename.Compile(`{{.title}}.{{printf "%02d" (int .season)}}{{.fileExt}}`)
 if err != nil {
@@ -419,7 +425,7 @@ Go 模板中整数 `0` 在 `if` 判断里为假。保留特别季时，用 `{{if
 自定义策略通过 `tmdb.Config.CategoryPolicy` 传入，后续详情查询复用同一只读策略：
 
 ```go
-import "medianame/category"
+import "github.com/xifofo/medianame/category"
 
 policy, err := category.New(category.Config{
     Movie: []category.Rule{
@@ -471,6 +477,15 @@ JSON 使用相同的结构，完整可修改示例见 [category/custom.example.j
 原始 TMDB 的剧集 `type`（如 `Miniseries`）在分类中保持其原值，影视 `movie/tv` 类型单独决定策略分支。策略只计算分类名称；是否在目标路径增加分类目录由模板控制，如 `{{if .category}}{{.category}}/{{end}}`。传入空策略 `category.New(category.Config{})` 可关闭分类。不传 `CategoryPolicy` 时使用内置默认规则。搜索成人条目仍需单独设置 `IncludeAdult: true` 或命令行 `-adult`。
 
 ## 命令行预览
+
+安装命令行工具后，可直接运行 `medianame`：
+
+```bash
+go install github.com/xifofo/medianame/cmd/medianame@latest
+medianame 'Breaking.Bad.S01E02.1080p.WEB-DL.H264.mkv'
+```
+
+在源码目录中运行或构建：
 
 ```sh
 go run ./cmd/medianame 'Breaking.Bad.S01E02.1080p.WEB-DL.H264.mkv'

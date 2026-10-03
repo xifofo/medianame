@@ -1,4 +1,4 @@
-module medianame
+module github.com/xifofo/medianame
 
 go 1.22
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 var leadingReleaseTitle = regexp.MustCompile(`^\[([^\[\]]+)\]\s*(.+)$|^【([^【】]+)】\s*(.+)$`)

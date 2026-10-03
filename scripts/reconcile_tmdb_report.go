@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"medianame"
-	"medianame/tmdb"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/tmdb"
 )
 
 func run(filename string) error {

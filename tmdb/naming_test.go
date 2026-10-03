@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"testing"
 
-	"medianame"
-	"medianame/category"
-	"medianame/tmdb"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/category"
+	"github.com/xifofo/medianame/tmdb"
 )
 
 func TestDetailsAddsEnglishTitleCategoryAndMovieRename(t *testing.T) {

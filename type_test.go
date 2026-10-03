@@ -3,7 +3,7 @@ package medianame_test
 import (
 	"testing"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 func TestMediaTypeInference(t *testing.T) {

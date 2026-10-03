@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 const naturalHighName = "Natural High.2023.S00E131.WEB-DL.2160p.H265.DDP 2.0-ADWeb"

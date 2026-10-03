@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"medianame/tmdb"
+	"github.com/xifofo/medianame/tmdb"
 )
 
 func ExampleClient_Recognize() {

@@ -11,8 +11,8 @@ import (
 	"sync"
 	"testing"
 
-	"medianame"
-	"medianame/tmdb"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/tmdb"
 )
 
 func clientFor(t *testing.T, handler http.HandlerFunc, options ...func(*tmdb.Config)) *tmdb.Client {

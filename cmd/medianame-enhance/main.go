@@ -16,8 +16,8 @@ import (
 	"syscall"
 	"time"
 
-	"medianame"
-	"medianame/internal/shadow"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/internal/shadow"
 )
 
 func main() {

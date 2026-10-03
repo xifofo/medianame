@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"medianame"
-	"medianame/tmdb"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/tmdb"
 )
 
 const emptyFind = `{"movie_results":[],"tv_results":[],"person_results":[],"tv_season_results":[],"tv_episode_results":[]}`

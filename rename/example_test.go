@@ -3,8 +3,8 @@ package rename_test
 import (
 	"fmt"
 
-	"medianame"
-	"medianame/rename"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/rename"
 )
 
 func ExampleRender() {

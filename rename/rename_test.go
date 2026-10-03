@@ -6,8 +6,8 @@ import (
 	"sync"
 	"testing"
 
-	"medianame"
-	"medianame/rename"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/rename"
 )
 
 func TestUserMovieTemplate(t *testing.T) {

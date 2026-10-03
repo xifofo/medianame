@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 func TestRealShadowRegressions(t *testing.T) {

@@ -10,10 +10,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"medianame"
-	"medianame/category"
-	"medianame/rename"
-	"medianame/tmdb"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/category"
+	"github.com/xifofo/medianame/rename"
+	"github.com/xifofo/medianame/tmdb"
 )
 
 func main() {

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 // MediaInfo 是 TMDB 的影视详情。电影和剧集统一身份字段，数据库特有字段保留在 Raw。

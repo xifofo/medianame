@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 // ExternalSource 是 FindByID 支持的外部影视数据库。

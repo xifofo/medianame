@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"medianame"
+	"github.com/xifofo/medianame"
 )
 
 type Status string

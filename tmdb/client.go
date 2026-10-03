@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"medianame"
-	"medianame/category"
+	"github.com/xifofo/medianame"
+	"github.com/xifofo/medianame/category"
 )
 
 const DefaultBaseURL = "https://api.themoviedb.org/3"
