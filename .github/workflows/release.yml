@@ -119,6 +119,6 @@ jobs:
             echo '::error::版本已发布，但 Go 代理下载验证失败；请稍后重跑本次工作流。'
             exit 1
           fi
-          go get "$MODULE_PATH@$RELEASE_VERSION"
+          go get "$MODULE_PATH/...@$RELEASE_VERSION"
           go build "$MODULE_PATH" "$MODULE_PATH/category" "$MODULE_PATH/rename" "$MODULE_PATH/tmdb" "$MODULE_PATH/cmd/medianame"
           printf '\nVerified `go get %s@%s` and public package builds.\n' "$MODULE_PATH" "$RELEASE_VERSION" >> "$GITHUB_STEP_SUMMARY"
