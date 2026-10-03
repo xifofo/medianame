@@ -267,22 +267,35 @@ func TestCacheClearDisableAndCanceledHit(t *testing.T) {
 }
 
 func TestCachePreservesHTTPTimeoutAndRetriesNetworkErrors(t *testing.T) {
-	var requests atomic.Int32
-	client := clientFor(t, func(w http.ResponseWriter, r *http.Request) {
-		if requests.Add(1) == 1 {
-			<-r.Context().Done()
-			return
+	for _, responseBody := range []bool{false, true} {
+		for _, cacheDisabled := range []bool{false, true} {
+			t.Run(fmt.Sprintf("body=%v/cacheDisabled=%v", responseBody, cacheDisabled), func(t *testing.T) {
+				var requests atomic.Int32
+				client := clientFor(t, func(w http.ResponseWriter, r *http.Request) {
+					if requests.Add(1) == 1 {
+						if responseBody {
+							_, _ = w.Write([]byte(`{"id":`))
+							w.(http.Flusher).Flush()
+						}
+						<-r.Context().Done()
+						return
+					}
+					respond(w, cachedTVDetails)
+				}, func(c *tmdb.Config) {
+					c.HTTPClient = &http.Client{Timeout: 100 * time.Millisecond}
+					c.Cache.Disabled = cacheDisabled
+				})
+				if _, err := client.Details(context.Background(), medianame.TypeTV, "123"); !errors.Is(err, context.DeadlineExceeded) {
+					t.Fatalf("HTTP timeout lost: %v", err)
+				}
+				if stats := client.CacheStats(); stats != (tmdb.CacheStats{}) {
+					t.Fatalf("timeout response cached: %+v", stats)
+				}
+				if _, err := client.Details(context.Background(), medianame.TypeTV, "123"); err != nil || requests.Load() != 2 {
+					t.Fatal("could not retry after network error", err)
+				}
+			})
 		}
-		respond(w, cachedTVDetails)
-	}, func(c *tmdb.Config) { c.HTTPClient = &http.Client{Timeout: 100 * time.Millisecond} })
-	if _, err := client.Details(context.Background(), medianame.TypeTV, "123"); !errors.Is(err, context.DeadlineExceeded) {
-		t.Fatalf("HTTP timeout lost: %v", err)
-	}
-	if stats := client.CacheStats(); stats != (tmdb.CacheStats{}) {
-		t.Fatalf("timeout response cached: %+v", stats)
-	}
-	if _, err := client.Details(context.Background(), medianame.TypeTV, "123"); err != nil || requests.Load() != 2 {
-		t.Fatal("could not retry after network error", err)
 	}
 }
 

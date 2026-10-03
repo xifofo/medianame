@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -143,7 +144,7 @@ func (c *Client) request(ctx context.Context, requestURL string) ([]byte, error)
 		if errors.Is(err, context.Canceled) {
 			return nil, fmt.Errorf("TMDB 请求取消: %w", context.Canceled)
 		}
-		if errors.Is(err, context.DeadlineExceeded) {
+		if isRequestTimeout(err) {
 			return nil, fmt.Errorf("TMDB 请求超时: %w", context.DeadlineExceeded)
 		}
 		var urlError *url.Error
@@ -159,7 +160,7 @@ func (c *Client) request(ctx context.Context, requestURL string) ([]byte, error)
 		if errors.Is(err, context.Canceled) || errors.Is(ctx.Err(), context.Canceled) {
 			return nil, fmt.Errorf("TMDB 请求取消: %w", context.Canceled)
 		}
-		if errors.Is(err, context.DeadlineExceeded) || errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		if isRequestTimeout(err) || errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			return nil, fmt.Errorf("TMDB 请求超时: %w", context.DeadlineExceeded)
 		}
 		return nil, errors.New("读取 TMDB 响应失败")
@@ -181,6 +182,12 @@ func (c *Client) request(ctx context.Context, requestURL string) ([]byte, error)
 		return nil, errInvalidJSON
 	}
 	return data, nil
+}
+
+func isRequestTimeout(err error) bool {
+	// Go 1.22 的 HTTP 超时不保留 DeadlineExceeded 错误链，需兼容 Timeout 方法。
+	var networkError net.Error
+	return errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &networkError) && networkError.Timeout())
 }
 
 func (c *Client) redact(value string) string {
