@@ -4,6 +4,7 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -24,6 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
@@ -43,6 +45,8 @@ jobs:
           go mod verify
       - name: Vet
         run: go vet ./...
+      - name: Check release validation
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
       - name: Test with race detector
         run: go test -race -count=1 ./...
       - name: Build

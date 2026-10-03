@@ -519,6 +519,20 @@ go test -run='^$' -bench=BenchmarkParse -benchmem
 
 GitHub Actions 配置在 Go 1.22 和当前稳定版本上检查格式、依赖、`go vet`、竞态测试与构建。测试使用本地 HTTP 模拟服务，不需要 TMDB 或 MP2 凭证。
 
+## 发布版本
+
+推送代码到 `main` 后，CI 自动执行检查。准备发版时，打开 [Release 工作流](https://github.com/xifofo/medianame/actions/workflows/release.yml)，点击 **Run workflow**，选择 `main` 并填写版本号，例如 `v0.1.0`。
+
+Release 会先校验版本号及模块路径，再复用完整 CI；全部通过后，给本次运行的提交创建标签，生成发布说明和 GitHub Release，最后从 Go 公共代理下载指定版本，并在独立项目中执行 `go get` 和构建验证。发布任务使用仓库自带的 `GITHUB_TOKEN`，不需要额外配置个人访问令牌。此流程发布 Go 模块和源码，不上传各平台命令行二进制。
+
+当前模块路径支持 `v0.x.x` 和 `v1.x.x`；发布 `v2` 及以上版本前需要先迁移到对应的 `/vN` 模块路径。`v0.2.0-rc.1` 这样的版本自动标记为预发布。同一仓库的发布流程串行执行，已有标签不会被改写；只有标签仍指向本次提交时才允许重跑，已发布的 Release 会复用。如果版本已发布但 Go 代理下载暂时失败，可在该次运行中选择 **Re-run failed jobs**，无需重新发版。
+
+也可在已登录的 GitHub CLI 中触发：
+
+```sh
+gh workflow run release.yml --ref main -f version=v0.1.0
+```
+
 ## 与本地 MP2 做影子测试
 
 `medianame-shadow` 可导入 UTF-8 或带 BOM 的 UTF-16 目录树，把视频文件名交给本地包与真实 MP2 对比。API Token 从环境变量读取，不写入报告。

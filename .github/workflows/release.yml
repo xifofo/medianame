@@ -1,0 +1,124 @@
+name: Release
+run-name: Release ${{ inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号，例如 v0.1.0 或 v0.2.0-rc.1'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+      module: ${{ steps.metadata.outputs.module }}
+      prerelease: ${{ steps.metadata.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate version and commit
+        id: metadata
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: python3 .github/scripts/release.py
+
+  check:
+    name: Verify release commit
+    needs: validate
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: Publish and verify module
+    needs: [validate, check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+      MODULE_PATH: ${{ needs.validate.outputs.module }}
+      PRERELEASE: ${{ needs.validate.outputs.prerelease }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: stable
+          cache: false
+      - name: Recheck version before publishing
+        run: python3 .github/scripts/release.py
+      - name: Create tag at verified commit
+        shell: bash
+        run: |
+          if ! git show-ref --verify --quiet "refs/tags/$RELEASE_VERSION"; then
+            git config user.name 'github-actions[bot]'
+            git config user.email 'github-actions[bot]@users.noreply.github.com'
+            git tag -a "$RELEASE_VERSION" "$GITHUB_SHA" -m "Release $RELEASE_VERSION"
+            git push origin "refs/tags/$RELEASE_VERSION"
+          fi
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if draft=$(gh release view "$RELEASE_VERSION" --json isDraft --jq '.isDraft'); then
+            if [ "$draft" = true ]; then
+              echo '::error::此版本已存在发布草稿，请先处理草稿或使用新的版本号。'
+              exit 1
+            fi
+          else
+            flags=(--verify-tag --generate-notes --title "$RELEASE_VERSION")
+            if [ "$PRERELEASE" = true ]; then
+              flags+=(--prerelease)
+            fi
+            gh release create "$RELEASE_VERSION" "${flags[@]}"
+          fi
+          release_url=$(gh release view "$RELEASE_VERSION" --json url --jq '.url')
+          printf 'Published [%s](%s) from `%s`.\n' "$RELEASE_VERSION" "$release_url" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify public Go module download and build
+        if: ${{ !github.event.repository.private }}
+        shell: bash
+        env:
+          GOPROXY: https://proxy.golang.org
+          GOSUMDB: sum.golang.org
+          GOWORK: 'off'
+        run: |
+          verification_dir=$(mktemp -d)
+          export GOMODCACHE="$verification_dir/cache"
+          cd "$verification_dir"
+          go mod init example.com/medianame-release-check
+          downloaded=false
+          for attempt in 1 2 3 4 5 6; do
+            if go mod download "$MODULE_PATH@$RELEASE_VERSION"; then
+              downloaded=true
+              break
+            fi
+            if [ "$attempt" -lt 6 ]; then
+              sleep 20
+            fi
+          done
+          if [ "$downloaded" != true ]; then
+            echo '::error::版本已发布，但 Go 代理下载验证失败；请稍后重跑本次工作流。'
+            exit 1
+          fi
+          go get "$MODULE_PATH@$RELEASE_VERSION"
+          go build "$MODULE_PATH" "$MODULE_PATH/category" "$MODULE_PATH/rename" "$MODULE_PATH/tmdb" "$MODULE_PATH/cmd/medianame"
+          printf '\nVerified `go get %s@%s` and public package builds.\n' "$MODULE_PATH" "$RELEASE_VERSION" >> "$GITHUB_STEP_SUMMARY"
