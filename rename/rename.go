@@ -39,6 +39,7 @@ type Result struct {
 
 // BuildContext 每次生成独立变量表。数据库片名、年份和 ID 优先，资源参数使用本地解析值。
 // 英文标题缺失时依次使用原名、标题，不猜测未知的英文译名。
+// 技术字段使用点号分隔；Dolby Vision 在命名时缩写为 DV，保留独立的 HDR 标签。
 func BuildContext(info medianame.Info, media Media) Context {
 	title := first(media.Title, info.Title)
 	enTitle := first(media.EnglishTitle, media.OriginalTitle, title)
@@ -101,17 +102,19 @@ func BuildContext(info medianame.Info, media Media) Context {
 	if info.FPS > 0 {
 		fps = info.FPS
 	}
-	var effects = strings.Join(info.Effects, " ")
-	edition := strings.TrimSpace(strings.Join([]string{info.Source, effects}, " "))
-	audio := info.AudioCodec
-	if audio != "" && info.AudioChannels != "" {
-		audio += " " + info.AudioChannels
-	}
+	effectTerms := make([]string, 0, len(info.Effects))
 	for _, effect := range info.Effects {
-		if effect == "Atmos" && audio != "" {
-			audio += " Atmos"
-			break
+		if effect == "Dolby Vision" {
+			effect = "DV"
 		}
+		effectTerms = append(effectTerms, effect)
+	}
+	effects := joinTechnicalTerms(effectTerms...)
+	edition := joinTechnicalTerms(info.Source, effects)
+	// Atmos is already retained in effect/edition; do not repeat it in the audio field.
+	audio := joinTechnicalTerms(info.AudioCodec)
+	if audio != "" {
+		audio = joinTechnicalTerms(audio, info.AudioChannels)
 	}
 	originalName := path.Base(strings.ReplaceAll(info.Original, `\`, "/"))
 	if info.Original == "" {
@@ -128,10 +131,19 @@ func BuildContext(info medianame.Info, media Media) Context {
 		"part": part, "edition": edition, "resourceType": info.Source, "effect": effects,
 		"videoFormat": info.Resolution, "videoCodec": info.VideoCodec, "videoBit": bit,
 		"audioCodec": audio, "webSource": info.StreamingService, "releaseGroup": info.ReleaseGroup,
-		"resource_term": strings.TrimSpace(edition + " " + info.Resolution), "fps": fps,
+		"resource_term": joinTechnicalTerms(edition, info.Resolution), "fps": fps,
 		"fileExt": info.Extension, "customization": "", "episode_title": "", "episode_date": "",
 		"total_episodes": 0, "season_year": "",
 	}
+}
+
+// Only technical naming fields use dots. Titles and the parsed Info stay intact.
+func joinTechnicalTerms(values ...string) string {
+	var terms []string
+	for _, value := range values {
+		terms = append(terms, strings.Fields(value)...)
+	}
+	return strings.Join(terms, ".")
 }
 
 func first(values ...string) string {

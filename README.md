@@ -385,21 +385,23 @@ Go 模板中整数 `0` 在 `if` 判断里为假。保留特别季时，用 `{{if
 
 | 变量 | 类型 | 含义 | 示例 |
 | --- | --- | --- | --- |
-| `edition` | 字符串 | 来源和效果，用空格连接 | `WEB-DL HDR10`、`REMUX` |
+| `edition` | 字符串 | 来源和效果，用点号连接 | `REMUX.DV.HDR.Atmos`、`WEB-DL.HDR10` |
 | `resourceType` | 字符串 | `Info.Source` | `WEB-DL`、`BluRay`、`REMUX` |
-| `effect` | 字符串 | 全部效果，用空格连接 | `Dolby Vision HDR10` |
+| `effect` | 字符串 | 全部已识别效果，用点号连接；Dolby Vision 缩写为 DV | `DV.HDR10.Atmos` |
 | `videoFormat` | 字符串 | 分辨率 | `1080p`、`2160p` |
 | `videoCodec` | 字符串 | 归一化视频编码 | `H.264`、`H.265`、`AV1` |
 | `videoBit` | 字符串 | 位深加 `bit` 后缀 | `10bit` |
-| `audioCodec` | 字符串 | 音频编码保留 `DDP` / `DD+` / `DD` 别名，用空格附加已识别声道和 Atmos | `FLAC 2.0`、`DDP 5.1`、`TrueHD 7.1 Atmos` |
+| `audioCodec` | 字符串 | 音频编码和已识别声道，用点号连接；保留 `DDP` / `DD+` / `DD` 别名 | `FLAC.2.0`、`DDP.5.1`、`TrueHD.7.1` |
 | `webSource` | 字符串 | 流媒体平台标记 | `Amazon`、`Netflix` |
 | `releaseGroup` | 字符串 | 发布组 / 字幕组 | `Misaki`、`SBSUB` |
 | `part` | 字符串 | 分卷号加 `part` 前缀 | `part2` |
 | `fps` | 浮点数或空字符串 | 帧率 | `23.976` / `""` |
-| `resource_term` | 字符串 | `edition` 与分辨率组合 | `WEB-DL HDR10 2160p` |
+| `resource_term` | 字符串 | `edition` 与分辨率，用点号连接 | `WEB-DL.HDR10.2160p` |
 | `fileExt` | 字符串 | 已识别扩展名，包含点号并转为小写 | `.mkv`、`.mp4`、`.ass` |
 
-视频编码使用本包的归一化值，例如 `H.265`。音频中的 `DDP`、`DD+`、`DD` 对齐 MP2 保留发行别名，不替换成 `E-AC-3` / `AC-3`；例如 `DDP2.0` 解析为 `AudioCodec: "DDP"`、`AudioChannels: "2.0"`，重命名变量 `audioCodec` 为 `DDP 2.0`。原本使用 `EAC3` / `E-AC-3` 或 `AC3` / `AC-3` 的输入仍分别归一为 `E-AC-3`、`AC-3`。`edition`、`effect`、`audioCodec` 可能同时包含 Atmos，按所需信息选择模板变量。
+视频编码使用本包的归一化值，例如 `H.265`。音频中的 `DDP`、`DD+`、`DD` 对齐 MP2 保留发行别名，不替换成 `E-AC-3` / `AC-3`；例如 `DDP2.0` 解析为 `AudioCodec: "DDP"`、`AudioChannels: "2.0"`，重命名变量 `audioCodec` 为 `DDP.2.0`。原本使用 `EAC3` / `E-AC-3` 或 `AC3` / `AC-3` 的输入仍分别归一为 `E-AC-3`、`AC-3`。
+
+从 v0.1.2 起，`edition`、`effect`、`audioCodec`、`resource_term` 直接提供点号分隔的命名文本，`Dolby Vision` 在命名时缩写为 `DV`。原名同时识别出 DV 与 HDR、HDR10 或 HDR10+ 时会全部保留；只有 DV 时不补 HDR，也不把 HDR 推断为 HDR10。Atmos 保留在 `effect` / `edition`，不再重复附加到 `audioCodec`，因此默认模板只输出一次。只使用 `audioCodec` 的自定义模板若要保留效果标签，需要加入 `effect` 或 `edition`。这些格式转换不改变原始 `Info.Effects`、音频字段或片名。
 
 #### 调用方补充的变量
 

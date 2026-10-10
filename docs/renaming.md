@@ -75,7 +75,7 @@ Example Show.2024.S01E02.1080p.mkv
 示例：
 
 ```text
-肮脏天使 (2024) {tmdb-1043905}/Dirty Angels.2024.WEB-DL.1080p.H.265.DDP 5.1.Amazon-404.mkv
+肮脏天使 (2024) {tmdb-1043905}/Dirty Angels.2024.WEB-DL.1080p.H.265.DDP.5.1.Amazon-404.mkv
 示例剧 (2024) {tmdb-123}/Season 00/Example Show.2024.S00E01.mkv
 ```
 
@@ -83,7 +83,21 @@ Example Show.2024.S01E02.1080p.mkv
 
 默认模板的目录使用片名和年份。若要分类目录前缀，在自定义模板中加入 `{{if .category}}{{.category}}/{{end}}`。
 
-音频中的 `DDP`、`DD+`、`DD` 保留发行别名，与 MP2 的对应字段一致；`audioCodec` 在编码和声道之间加一个空格，例如 `DDP2.0` 输出 `DDP 2.0`，`DD+7.1` 输出 `DD+ 7.1`。原本写成 `E-AC-3` 或 `AC-3` 的输入继续使用对应名称。若需要紧凑写法，可在自定义模板中使用 `{{.audioCodec | replace " " ""}}`。
+音频中的 `DDP`、`DD+`、`DD` 保留发行别名，与 MP2 的对应字段一致。从 v0.1.2 起，`audioCodec` 用点号连接编码和声道，例如 `DDP2.0` 输出 `DDP.2.0`，`DD+7.1` 输出 `DD+.7.1`，`DTS-HD MA 5.1` 输出 `DTS-HD.MA.5.1`。原本写成 `E-AC-3` 或 `AC-3` 的输入继续使用对应名称。
+
+`edition`、`effect` 和 `resource_term` 同样用点号连接技术标签，命名时将 `Dolby Vision` 缩写为 `DV`。DV 和 HDR、HDR10、HDR10+ 可以同时保留，不互相覆盖，也不会推断输入里没有的标签。Atmos 保留在 `effect` / `edition`，不再附加到 `audioCodec`。例如下面的原名：
+
+```text
+Kingdom.of.Heaven.2005.2160p.Directors.Cut.Roadshow.Version.UHD.BluRay.REMUX.HEVC.DV.HDR.TrueHD.Atmos.7.1-HDHIVE.mkv
+```
+
+配合英文名 `Kingdom of Heaven`，默认文件名输出：
+
+```text
+Kingdom of Heaven.2005.REMUX.DV.HDR.Atmos.2160p.H.265.TrueHD.7.1-HDHIVE.mkv
+```
+
+以上变化只作用于命名变量，原始解析仍保留 `Effects: ["Dolby Vision", "HDR", "Atmos"]`、`AudioCodec: "TrueHD"`、`AudioChannels: "7.1"`。现有模板直接使用这些变量就会得到新格式，无须增加 `replace`；只使用 `audioCodec` 的自定义模板若要保留效果标签，需要加入 `effect` 或 `edition`。片名中的空格保持原样。
 
 ## 常用模板
 

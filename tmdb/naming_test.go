@@ -48,11 +48,11 @@ func TestDefaultMovieRenamePreservesDolbyAliases(t *testing.T) {
 			if info.AudioCodec != tt.codec || info.AudioChannels != "2.0" {
 				t.Fatalf("audio alias/channels lost: %+v", info)
 			}
-			if got := m.RenameContext(info)["audioCodec"]; got != tt.codec+" 2.0" {
-				t.Fatalf("audioCodec=%q; want %q", got, tt.codec+" 2.0")
+			if got := m.RenameContext(info)["audioCodec"]; got != tt.codec+".2.0" {
+				t.Fatalf("audioCodec=%q; want %q", got, tt.codec+".2.0")
 			}
 			result, err := m.Rename(info, "")
-			wantName := "Renegade Immortal： Battle of the Immortal Slayer.2026.WEB-DL.2160p.H.265." + tt.codec + " 2.0-HHWEB.mkv"
+			wantName := "Renegade Immortal： Battle of the Immortal Slayer.2026.WEB-DL.2160p.H.265." + tt.codec + ".2.0-HHWEB.mkv"
 			wantDirectory := "仙逆剧场版：弑仙之战 (2026) {tmdb-1599191}"
 			if err != nil || result == nil || result.Name != wantName || result.Directory != wantDirectory ||
 				result.Path != wantDirectory+"/"+wantName {

@@ -15,7 +15,7 @@ func TestUserMovieTemplate(t *testing.T) {
 	context := rename.BuildContext(info, rename.Media{Title: "肮脏天使", EnglishTitle: "Dirty Angels", Year: 2024,
 		Type: medianame.TypeMovie, IDs: medianame.MediaIDs{TMDB: "1043905"}})
 	result, err := rename.Render(rename.DefaultMovieTemplate, context)
-	want := "肮脏天使 (2024) {tmdb-1043905}/Dirty Angels.2024.WEB-DL.1080p.H.265.DDP 5.1.Amazon-404.mkv"
+	want := "肮脏天使 (2024) {tmdb-1043905}/Dirty Angels.2024.WEB-DL.1080p.H.265.DDP.5.1.Amazon-404.mkv"
 	if err != nil || result == nil || result.Path != want || result.Name != strings.Split(want, "/")[1] ||
 		result.Directory != "肮脏天使 (2024) {tmdb-1043905}" {
 		t.Fatalf("result=%+v err=%v", result, err)
