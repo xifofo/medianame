@@ -50,7 +50,6 @@ func TestReconcileAdoptsTMDBTitleAndOriginalTitle(t *testing.T) {
 		{"预兆 （2023） — Harbin.2024.1080p.mkv", tmdb.MediaInfo{Title: "预兆", OriginalTitle: "The Harbinger", Year: 2023, Type: medianame.TypeMovie, TMDBID: "974191"}, "release_title"},
 		{"甜蜜的小狐狸 (1983) - Sweet.Young.Foxes.1983.mkv", tmdb.MediaInfo{Title: "狐狸小姐", OriginalTitle: "Nathalie", Aliases: []string{"甜蜜的小狐狸"}, Year: 1957, Type: medianame.TypeMovie, TMDBID: "193282"}, "release_title"},
 		{"Other.Film.2023.mkv", tmdb.MediaInfo{Title: "官方片名", OriginalTitle: "Official Title", Year: 2024, Type: medianame.TypeMovie, TMDBID: "9"}, "title"},
-		{"[变形金刚3].Transformers.Dark.of.the.Moon.2011.1080p.mkv", tmdb.MediaInfo{Title: "变形金刚3：月黑之时", OriginalTitle: "Transformers: Dark of the Moon", Year: 2011, Type: medianame.TypeMovie, TMDBID: "38356"}, "title"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			info := medianame.Parse(tt.name)

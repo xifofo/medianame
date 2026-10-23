@@ -4,18 +4,21 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 var (
-	seasonEpisodePattern  = regexp.MustCompile(`(?i)S([0-9]{1,3})[ ._-]*EP?([0-9]{1,4})(?:[ ._]*[-~][ ._]*(?:S([0-9]{1,3})[ ._-]*)?EP?([0-9]{1,4})|[ ._]*[-~][ ._]*([0-9]{1,4}))?((?:[ ._]*EP?[0-9]{1,4})*)(?:v([0-9]{1,2}))?`)
-	xEpisodePattern       = regexp.MustCompile(`(?i)([0-9]{1,2})x([0-9]{1,3})(?:-([0-9]{1,3}))?`)
-	seasonPattern         = regexp.MustCompile(`(?i)(?:Season[ ._-]+|S)([0-9]{1,3})(?:[ ._]*[-~][ ._]*(?:Season[ ._-]+|S)([0-9]{1,3}))?`)
-	episodePattern        = regexp.MustCompile(`(?i)(?:Episode[ ._-]+|TV[ ._-]+|#|EP?)([0-9]{1,4})(?:[ ._]*[-~][ ._]*(?:Episode[ ._-]+|TV[ ._-]+|EP?)?([0-9]{1,4}))?(?:v([0-9]{1,2}))?`)
-	chineseSeasonPattern  = regexp.MustCompile(`第\s*([零〇一二两兩三四五六七八九十百千0-9]+)\s*季(?:\s*[-~]\s*第?\s*([零〇一二两兩三四五六七八九十百千0-9]+)\s*季)?`)
-	chineseEpisodePattern = regexp.MustCompile(`第\s*([零〇一二两兩三四五六七八九十百千0-9]+)\s*(?:[集话話期])?(?:\s*[-~]\s*第?\s*([零〇一二两兩三四五六七八九十百千0-9]+)\s*)?[集话話期]`)
-	animeBracketPattern   = regexp.MustCompile(`(?i)[\[【]([0-9]{1,4})(?:[-~]([0-9]{1,4}))?(?:v([0-9]{1,2}))?[\]】]`)
-	animeDashPattern      = regexp.MustCompile(`(?i)\s-\s+([0-9]{1,4})(?:[-~]([0-9]{1,4}))?(?:v([0-9]{1,2}))?(?:\s*$|[ .]*[\[【(])`)
-	extraEpisodePattern   = regexp.MustCompile(`(?i)EP?([0-9]{1,4})`)
+	seasonEpisodePattern    = regexp.MustCompile(`(?i)S([0-9]{1,3})[ ._-]*EP?([0-9]{1,4})(?:[ ._]*[-~][ ._]*(?:S([0-9]{1,3})[ ._-]*)?EP?([0-9]{1,4})|[ ._]*[-~][ ._]*([0-9]{1,4}))?((?:[ ._]*EP?[0-9]{1,4})*)(?:v([0-9]{1,2}))?`)
+	xEpisodePattern         = regexp.MustCompile(`(?i)([0-9]{1,2})x([0-9]{1,3})(?:-([0-9]{1,3}))?`)
+	seasonPattern           = regexp.MustCompile(`(?i)(?:Season[ ._-]+|S)([0-9]{1,3})(?:[ ._]*[-~][ ._]*(?:Season[ ._-]+|S)([0-9]{1,3}))?`)
+	episodePattern          = regexp.MustCompile(`(?i)(?:Episode[ ._-]+|TV[ ._-]+|#|EP?)([0-9]{1,4})(?:[ ._]*[-~][ ._]*(?:Episode[ ._-]+|TV[ ._-]+|EP?)?([0-9]{1,4}))?(?:v([0-9]{1,2}))?`)
+	chineseSeasonPattern    = regexp.MustCompile(`第\s*([零〇一二两兩三四五六七八九十百千0-9]+)\s*季(?:\s*[-~]\s*第?\s*([零〇一二两兩三四五六七八九十百千0-9]+)\s*季)?`)
+	chineseEpisodePattern   = regexp.MustCompile(`第\s*([零〇一二两兩三四五六七八九十百千0-9]+)\s*(?:[集话話期])?(?:\s*[-~]\s*第?\s*([零〇一二两兩三四五六七八九十百千0-9]+)\s*)?[集话話期]`)
+	animeBracketPattern     = regexp.MustCompile(`(?i)[\[【]([0-9]{1,4})(?:[-~]([0-9]{1,4}))?(?:v([0-9]{1,2}))?[\]】]`)
+	animeDashPattern        = regexp.MustCompile(`(?i)\s-\s+([0-9]{1,4})(?:[-~]([0-9]{1,4}))?(?:v([0-9]{1,2}))?(?:\s*$|[ .]*[\[【(])`)
+	extraEpisodePattern     = regexp.MustCompile(`(?i)EP?([0-9]{1,4})`)
+	completedEpisodePattern = regexp.MustCompile(`(?i)([0-9]{1,4})[ ._]*[-~][ ._]*([0-9]{1,4})[ ._]*(?:Fin|End|完结|完結)`)
 )
 
 func parseEpisodes(text string, info *Info) []span {
@@ -148,6 +151,12 @@ func parseEpisodes(text string, info *Info) []span {
 			used = append(used, span{m[0], m[1]})
 		}
 	}
+	for _, m := range completedEpisodeMatches(text) {
+		if info.Episode == nil {
+			setEpisodeRange(info, number(text, m, 1), number(text, m, 2))
+		}
+		used = append(used, span{m[0], m[1]})
+	}
 	if info.Season != nil || info.Episode != nil {
 		if info.Type == TypeUnknown {
 			info.Type = TypeTV
@@ -173,7 +182,46 @@ func containsInt(values []int, value int) bool {
 }
 
 func hasAnimeEpisode(text string) bool {
-	return findAnimeEpisode(animeBracketPattern, text) != nil || findAnimeEpisode(animeDashPattern, text) != nil
+	return findAnimeEpisode(animeBracketPattern, text) != nil || findAnimeEpisode(animeDashPattern, text) != nil ||
+		len(completedEpisodeMatches(text)) > 0
+}
+
+// 完结标记只补充缺失的集号；显式季集写法和复合 ID 标签仍优先。
+func completedEpisodeMatches(text string) [][]int {
+	var result [][]int
+	for _, m := range boundedMatches(completedEpisodePattern, text) {
+		next, _ := utf8.DecodeRuneInString(text[m[1]:])
+		if unicode.IsLetter(next) || unicode.IsDigit(next) {
+			continue // 不把 Final、Endless、完结篇等普通词截成完结标记。
+		}
+		if yearPattern.MatchString(text[m[2]:m[3]]) && yearPattern.MatchString(text[m[4]:m[5]]) {
+			continue // 发行年份区间不能当成集范围。
+		}
+		result = append(result, m)
+	}
+	return result
+}
+
+// 前置的独立完结范围先移出标题区域，避免把它当成发布组或截掉后面的片名。
+// 片名后的范围仍交给正常的季集解析，作为标题结束边界。
+func takeLeadingCompletedRange(text string) (string, *[2]int) {
+	for _, m := range completedEpisodeMatches(text) {
+		prefix := strings.TrimSpace(text[:m[0]])
+		end := m[1]
+		if prefix != "" {
+			closing := map[string]string{"[": "]", "【": "】", "(": ")"}[prefix]
+			if closing == "" {
+				return text, nil
+			}
+			rest := strings.TrimLeftFunc(text[end:], unicode.IsSpace)
+			if !strings.HasPrefix(rest, closing) {
+				return text, nil
+			}
+			end = len(text) - len(rest) + len(closing)
+		}
+		return strings.TrimLeft(text[end:], " \t\r\n._"), &[2]int{number(text, m, 1), number(text, m, 2)}
+	}
+	return text, nil
 }
 
 func findAnimeEpisode(pattern *regexp.Regexp, text string) []int {

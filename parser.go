@@ -38,7 +38,7 @@ func init() {
 	// 包初始化后只读，所有并发调用共享编译结果。
 	boundaryPatterns = make(map[*regexp.Regexp]*regexp.Regexp)
 	patterns := []*regexp.Regexp{yearPattern, partPattern, seasonEpisodePattern,
-		xEpisodePattern, seasonPattern, episodePattern}
+		xEpisodePattern, seasonPattern, episodePattern, completedEpisodePattern}
 	for _, rule := range technicalRules {
 		patterns = append(patterns, rule.pattern)
 	}
@@ -68,8 +68,16 @@ func parseName(name string, collectAliases bool) Info {
 	}
 	text = normalize(text)
 	text = parseIDs(text, &info)
+	text, completed := takeLeadingCompletedRange(text)
 	text = removeLeadingGroup(text, &info)
 	for {
+		if rest, next := takeLeadingCompletedRange(text); next != nil {
+			text = rest
+			if completed == nil {
+				completed = next
+			}
+			continue
+		}
 		prefix := promotionPattern.FindStringIndex(text)
 		if prefix == nil {
 			break
@@ -77,11 +85,18 @@ func parseName(name string, collectAliases bool) Info {
 		text = strings.TrimSpace(text[prefix[1]:])
 	}
 	if text == "" {
+		if info.Episode == nil && completed != nil {
+			setEpisodeRange(&info, completed[0], completed[1])
+			inferType(&info)
+		}
 		return info
 	}
 
 	var used []span
 	used = append(used, parseEpisodes(text, &info)...)
+	if info.Episode == nil && completed != nil {
+		setEpisodeRange(&info, completed[0], completed[1])
+	}
 	year := findYear(text, used)
 	prefix := organizedPrefixPattern.FindStringSubmatchIndex(text)
 	if prefix != nil {
@@ -129,7 +144,7 @@ func parseName(name string, collectAliases bool) Info {
 	if info.ReleaseGroup == "" && boundary < len(text) {
 		info.ReleaseGroup = trailingGroup(text, used)
 	}
-	info.Title = cleanTitle(text[:boundary])
+	info.Title = splitBilingualTitle(cleanTitle(text[:boundary]))
 	if collectAliases && prefix != nil {
 		release := parseName(text[prefix[1]:], false)
 		// 只将同年份的发行名称作为别名；冲突年份不强行合并为同一部作品。
@@ -285,15 +300,21 @@ func removeLeadingGroup(text string, info *Info) string {
 	rest := strings.TrimSpace(text[m[1]:])
 	// 前置方括号也可以装片名；仅在后面有独立片名及动漫集号线索时视为发布组。
 	if rest == "" || len(findTechnical(content)) > 0 ||
-		checksumPattern.MatchString(content) || allDigits(content) {
+		checksumPattern.MatchString(content) || allDigits(content) || len(completedEpisodeMatches(content)) > 0 {
 		return text
 	}
-	if next := bracketPattern.FindStringSubmatchIndex(rest); next != nil && next[0] == 0 {
+	// 完结范围可能位于发布组和片名之间；查看其后内容，但返回时保留范围供解析。
+	following, _ := takeLeadingCompletedRange(rest)
+	if following == "" {
+		return text
+	}
+	if next := bracketPattern.FindStringSubmatchIndex(following); next != nil && next[0] == 0 {
 		start, end := next[2], next[3]
 		if start < 0 {
 			start, end = next[4], next[5]
 		}
-		if allDigits(rest[start:end]) || animeBracketPattern.MatchString(rest[:next[1]]) || len(findTechnical(rest[start:end])) > 0 {
+		if allDigits(following[start:end]) || animeBracketPattern.MatchString(following[:next[1]]) ||
+			len(completedEpisodeMatches(following[start:end])) > 0 || len(findTechnical(following[start:end])) > 0 {
 			return text
 		}
 	}
